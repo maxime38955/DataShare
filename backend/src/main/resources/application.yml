@@ -1,0 +1,17 @@
+# Port de l'application Spring Boot (8080 par défaut)
+server.port=8080
+server.servlet.context-path=/api/v1
+  
+  # Connexion à PostgreSQL (Docker)
+spring.datasource.url=jdbc:postgresql://localhost:5432/datashare
+spring.datasource.username=postgres
+spring.datasource.password=supersecretpassword
+spring.datasource.driver-class-name=org.postgresql.Driver
+  
+  # Configuration de JPA / Hibernate
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+  # "update" permet à Hibernate de générer/modifier automatiquement les tables de ton MCD au démarrage
+spring.jpa.hibernate.ddl-auto=update
+  # Affiche les requêtes SQL dans la console (très utile pour débugger)
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
