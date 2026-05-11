@@ -1,0 +1,82 @@
+<div class="upload-container">
+  <mat-card class="upload-card">
+    <mat-card-header>
+      <mat-card-title>Partager un fichier</mat-card-title>
+      <mat-card-subtitle>Déposez votre document (Max 1 Go)</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+        
+        <div class="dropzone" (click)="fileInput.click()">
+          <input 
+            type="file" 
+            #fileInput 
+            (change)="onFileSelected($event)" 
+            style="display: none;"
+          />
+          <mat-icon class="upload-icon">cloud_upload</mat-icon>
+          <p *ngIf="!selectedFile">Glissez-déposez votre fichier ici ou <span>parcourez</span></p>
+          <div *ngIf="selectedFile" class="file-info">
+            <mat-icon>insert_drive_file</mat-icon>
+            <strong>{{ selectedFile.name }}</strong> 
+            <span>({{ (selectedFile.size / 1024 / 1024) | number:'1.2-2' }} Mo)</span>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-banner">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <hr class="separator" />
+
+        <div class="options-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Protéger par mot de passe (optionnel)</mat-label>
+            <input matInput type="password" formControlName="password" placeholder="Min 6 caractères" />
+            <mat-error *ngIf="uploadForm.get('password')?.hasError('minlength')">
+              Le mot de passe doit contenir au moins 6 caractères.
+            </mat-error>
+          </mat-form-field>
+
+          <div class="slider-container">
+            <label class="slider-label">Durée de validité : {{ uploadForm.get('expirationDays')?.value }} jours</label>
+            <mat-slider min="1" max="7" step="1" thumbLabel discrete>
+              <input matSliderThumb formControlName="expirationDays" />
+            </mat-slider>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Ajouter des tags</mat-label>
+            <input 
+              matInput 
+              formControlName="tagInput" 
+              placeholder="Appuyez sur Entrée pour ajouter" 
+              (keydown.enter)="$event.preventDefault(); addTag()"
+            />
+          </mat-form-field>
+
+          <mat-chip-grid #chipGrid *ngIf="tagsList.length > 0">
+            <mat-chip-row *ngFor="let tag of tagsList" (removed)="removeTag(tag)">
+              {{ tag }}
+              <button matChipRemove><mat-icon>cancel</mat-icon></button>
+            </mat-chip-row>
+          </mat-chip-grid>
+        </div>
+
+        <div class="action-buttons">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            type="submit" 
+            [disabled]="!selectedFile || uploadForm.invalid"
+          >
+            Générer le lien de téléchargement
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
