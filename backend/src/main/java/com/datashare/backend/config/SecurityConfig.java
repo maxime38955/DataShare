@@ -19,11 +19,11 @@ public class SecurityConfig {
     // avec et sans le préfixe de servlet context-path pour être 100% robuste.
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        log.info("////////test/////////");
         return (web) -> web.ignoring().requestMatchers(
 
                 "/files/upload",
                 "/api/v1/files/upload",
+                "/api/v1/files/register",
                 "/files/metadata/**",
                 "/api/v1/files/metadata/**",
                 "/files/download/**",
@@ -38,7 +38,6 @@ public class SecurityConfig {
     // 2. Chaîne de filtrage principale
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        log.debug("////////stest/////////");
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable) // Désactive le CORS par défaut de Security (WebConfig s'en charge déjà)
@@ -48,6 +47,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // On s'assure encore une fois que ces endpoints sont autorisés
                         .requestMatchers("/api/v1/files/upload", "/files/upload").permitAll()
+                        .requestMatchers( "/api/v1/files/register","/files/register").permitAll()
                         .requestMatchers("/api/v1/files/metadata/**", "/files/metadata/**").permitAll()
                         .requestMatchers("/api/v1/files/download/**", "/files/download/**").permitAll()
                         .requestMatchers("/api/v1/auth/**", "/auth/**").permitAll()

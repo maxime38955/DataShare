@@ -1,7 +1,9 @@
 package com.datashare.backend.controller;
 
 import com.datashare.backend.model.FileEntity;
+import com.datashare.backend.model.User;
 import com.datashare.backend.repository.FileRepository;
+import com.datashare.backend.repository.UserRepository;
 import com.datashare.backend.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j; // <-- Ajoute cet import
@@ -21,6 +23,7 @@ public class FileController {
 
     private final FileStorageService fileStorageService;
     private final FileRepository fileRepository;
+    private final UserRepository userRepository;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(
@@ -97,4 +100,47 @@ public class FileController {
                     .body("Une erreur est survenue lors de l'upload : " + e.getMessage());
         }
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(
+            @RequestParam(value = "email", required = true) String email,
+            @RequestParam(value = "password", required = true) String password
+            ) {
+
+        try {
+
+            User user = User.builder()
+                    .email(email)
+                    .password(password != null && !password.isEmpty() ? password : null)
+                    .build();
+            if (userRepository.existsByEmail(user.getEmail())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Cet email est déjà utilisé.");
+            }
+
+            if (user.getPassword() == null){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Mot de passe obligatoire.");
+            }
+            int len = user.getPassword().length();
+            if (len < 7 ){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Mot de passe trop court.");
+            }
+
+            userRepository.save(user);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("email", user.getEmail());
+            response.put("password", user.getPassword());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (Exception e) {
+            log.error("Erreur critique lors de l'enregistrement", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Une erreur est survenue lors de l'enregistrement : " + e.getMessage());
+        }
+    }
+
 }
