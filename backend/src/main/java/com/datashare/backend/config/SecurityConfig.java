@@ -1,60 +1,43 @@
 package com.datashare.backend.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
-@Slf4j
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    // 1. On ignore complètement la sécurité sur nos patterns de routes publics,
-    // avec et sans le préfixe de servlet context-path pour être 100% robuste.
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers(
+    private final JwtAuthenticationFilter jwtAuthFilter;
 
-                "/files/upload",
-                "/api/v1/files/upload",
-                "/api/v1/files/register",
-                "/files/metadata/**",
-                "/api/v1/files/metadata/**",
-                "/files/download/**",
-                "/api/v1/files/download/**",
-                "/auth/**",
-                "/api/v1/auth/**"
-
-        );
-
-    }
-
-    // 2. Chaîne de filtrage principale
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable) // Désactive le CORS par défaut de Security (WebConfig s'en charge déjà)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
                 .authorizeHttpRequests(auth -> auth
-                        // On s'assure encore une fois que ces endpoints sont autorisés
-                        .requestMatchers("/api/v1/files/upload", "/files/upload").permitAll()
-                        .requestMatchers( "/api/v1/files/register","/files/register").permitAll()
-                        .requestMatchers("/api/v1/files/metadata/**", "/files/metadata/**").permitAll()
-                        .requestMatchers("/api/v1/files/download/**", "/files/download/**").permitAll()
-                        .requestMatchers("/api/v1/auth/**", "/auth/**").permitAll()
-                        // Toutes les autres requêtes nécessiteront un compte
+                        .requestMatchers(
+                                "/user/register",
+                                "/user/login").permitAll()
                         .anyRequest().authenticated()
-                );
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(); // BCrypt est le standard de l'industrie
     }
 }

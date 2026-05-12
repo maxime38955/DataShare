@@ -1,5 +1,6 @@
 package com.datashare.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -28,12 +29,12 @@ public class FileEntity {
     private String mimeType;
 
     @Column(nullable = false, length = 512)
-    private String path; // Chemin d'accès sur le disque local
+    private String path;
 
     @Column(unique = true, nullable = false)
-    private String token; // UUID unique pour le lien de téléchargement
+    private String token;
 
-    private String password; // Hash du mot de passe (si protégé)
+    private String password;
 
     @Column(nullable = false)
     private LocalDateTime uploadDate;
@@ -46,10 +47,12 @@ public class FileEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user; // NULL si upload anonyme
+    @JsonIgnore
+    private User user;
 
     @ElementCollection
     @CollectionTable(name = "file_tags", joinColumns = @JoinColumn(name = "file_id"))
     @Column(name = "tag_name")
-    private Set<String> tags; // Stockage simple des tags associés
+    private Set<String> tags;
+
 }
