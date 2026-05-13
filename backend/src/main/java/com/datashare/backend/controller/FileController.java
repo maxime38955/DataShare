@@ -1,9 +1,7 @@
 package com.datashare.backend.controller;
 
 import com.datashare.backend.model.FileEntity;
-import com.datashare.backend.model.User;
-import com.datashare.backend.repository.FileRepository;
-import com.datashare.backend.repository.UserRepository;
+import com.datashare.backend.service.FileService;
 import com.datashare.backend.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -25,9 +22,8 @@ import java.util.*;
 @Slf4j
 public class FileController {
 
+    private final FileService fileService;
     private final FileStorageService fileStorageService;
-    private final FileRepository fileRepository;
-    private final UserRepository userRepository;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(
@@ -38,42 +34,12 @@ public class FileController {
             Principal principal) {
 
         try {
-            long maxSizeBytes = 1024L * 1024L * 1024L;
-            if (file.getSize() > maxSizeBytes) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Le fichier dépasse la taille maximale autorisée de 1 Go.");
-            }
+            String email = (principal != null) ? principal.getName() : null;
 
-            String originalFilename = file.getOriginalFilename();
-            if (originalFilename != null && (originalFilename.endsWith(".exe") || originalFilename.endsWith(".bat"))) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("L'extension du fichier est interdite pour des raisons de sécurité.");
-            }
+            // On délègue tout au FileService !
+            FileEntity savedFile = fileService.processUpload(file, password, expirationDays, tags, email);
 
-            User uploader = null;
-            if (principal != null) {
-                uploader = userRepository.findByEmail(principal.getName()).orElse(null);
-            }
-
-            String token = UUID.randomUUID().toString();
-            String physicalPath = fileStorageService.store(file, token);
-
-            FileEntity fileEntity = FileEntity.builder()
-                    .name(originalFilename)
-                    .size(file.getSize())
-                    .mimeType(file.getContentType())
-                    .path(physicalPath)
-                    .token(token)
-                    .password(password != null && !password.isEmpty() ? password : null)
-                    .uploadDate(LocalDateTime.now())
-                    .expirationDate(LocalDateTime.now().plusDays(expirationDays))
-                    .isActive(true)
-                    .tags(tags != null ? tags : new HashSet<>())
-                    .user(uploader)
-                    .build();
-
-            FileEntity savedFile = fileRepository.save(fileEntity);
-
+            // Préparation de la réponse propre
             Map<String, Object> response = new HashMap<>();
             response.put("fileId", savedFile.getFileId());
             response.put("name", savedFile.getName());
@@ -85,10 +51,11 @@ public class FileController {
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             log.error("Erreur critique lors de l'upload", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Une erreur est survenue lors de l'upload : " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Une erreur est survenue lors de l'upload.");
         }
     }
 
@@ -98,86 +65,69 @@ public class FileController {
             if (principal == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Accès refusé. Connectez-vous.");
             }
-
-            String email = principal.getName();
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-
-            List<FileEntity> userFiles = fileRepository.findByUser(user);
-
-            return ResponseEntity.ok(userFiles);
-
+            List<FileEntity> history = fileService.getUserHistory(principal.getName());
+            return ResponseEntity.ok(history);
         } catch (Exception e) {
             log.error("Erreur lors de la récupération de l'historique", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Impossible de récupérer l'historique des fichiers.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Impossible de récupérer l'historique.");
         }
     }
 
     @GetMapping("/metadata/{token}")
     public ResponseEntity<?> getMetadata(@PathVariable String token) {
-        Optional<FileEntity> fileOpt = fileRepository.findByToken(token);
+        try {
+            FileEntity file = fileService.getFileByToken(token);
 
-        if (fileOpt.isPresent()) {
-            FileEntity file = fileOpt.get();
             Map<String, Object> meta = new HashMap<>();
             meta.put("name", file.getName());
             meta.put("size", file.getSize());
             meta.put("mimeType", file.getMimeType());
             meta.put("expirationDate", file.getExpirationDate());
+            meta.put("path", file.getPath());
+            meta.put("token", file.getToken());
+            meta.put("isActive", file.getIsActive());
+            meta.put("uploadDate", file.getUploadDate());
+          
+
 
             return ResponseEntity.ok(meta);
-        }
-        else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Lien invalide ou expiré.");
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-
 
     @GetMapping("/download/{token}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String token) {
-        Optional<FileEntity> fileOpt = fileRepository.findByToken(token);
+        try {
+            FileEntity fileEntity = fileService.getFileByToken(token);
+            Resource resource = fileStorageService.load(fileEntity.getPath());
 
-        if (fileOpt.isEmpty()) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(fileEntity.getMimeType()))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileEntity.getName() + "\"")
+                    .body(resource);
+        } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         }
-
-        FileEntity fileEntity = fileOpt.get();
-        Resource resource = fileStorageService.load(fileEntity.getPath());
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(fileEntity.getMimeType()))
-
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileEntity.getName() + "\"")
-                .body(resource);
     }
-
 
     @DeleteMapping("/user/{fileId}")
     public ResponseEntity<?> deleteFile(@PathVariable Long fileId, Principal principal) {
         try {
-
-            FileEntity file = fileRepository.findById(fileId)
-                    .orElseThrow(() -> new RuntimeException("Fichier introuvable"));
-
-
-            if (file.getUser() == null || !file.getUser().getEmail().equals(principal.getName())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("Vous n'avez pas l'autorisation de supprimer ce fichier.");
+            if (principal == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Accès refusé.");
             }
 
-            fileStorageService.delete(file.getPath());
-
-            fileRepository.delete(file);
-
+            fileService.deleteSecuredFile(fileId, principal.getName());
             return ResponseEntity.ok("Fichier supprimé avec succès.");
 
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             log.error("Erreur lors de la suppression du fichier {}", fileId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur technique.");
         }
     }
-
-
 }
