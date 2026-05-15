@@ -24,16 +24,209 @@ body {
   // `dark` to enable the dark color theme, or to `light dark` to defer to the
   // user's system settings.
   color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
+  
+  background: linear-gradient(to bottom, #ffcca9, #f07b71);
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
   // Reset the user agent margin.
   margin: 0;
   height: 100%;
 }
 /* You can add global styles to this file, and also import other style files */
+.upload-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 80vh;
+
+  .upload-card {
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+  }
+
+  mat-card-header {
+    margin-bottom: 20px;
+  }
+
+  .dropzone {
+    border: 2px dashed #3f51b5;
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    background: #fcfcfc;
+    cursor: pointer;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: #f5f6fa;
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: #3f51b5;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin: 0;
+      color: #666;
+      span {
+        color: #3f51b5;
+        font-weight: bold;
+      }
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #2e7d32;
+
+      mat-icon {
+        color: #2e7d32;
+      }
+    }
+  }
+
+  .error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 15px;
+    font-size: 14px;
+
+    mat-icon {
+      color: #c62828;
+    }
+  }
+
+  .separator {
+    border: 0;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 30px 0;
+  }
+
+  .options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    mat-form-field {
+      width: 100%;
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+
+      .slider-label {
+        font-size: 14px;
+        color: #555;
+      }
+
+      mat-slider {
+        width: 100%;
+      }
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+    }
+  }
+}
+
+/* Le conteneur principal prend 100% de la hauteur de l'écran (100vh) */
+.hero-container {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Dégradé fluide du haut (pêche) vers le bas (corail/rose) */
+  background: linear-gradient(to bottom, #ffcca9, #f07b71);
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.content {
+  text-align: center;
+}
+
+.title {
+  font-size: 5rem; /* Très grand texte */
+  font-weight: 800;
+  color: #111; /* Noir très légèrement adouci */
+  margin: 0;
+  letter-spacing: -2px; /* Rapproche un peu les lettres pour un effet moderne */
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  font-style: italic;
+  color: #222;
+  margin-top: 10px;
+  margin-bottom: 50px; /* Espace avant les boutons */
+}
+
+/* Alignement des boutons */
+.button-group {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+/* Style de base commun à tous les boutons */
+.btn {
+  padding: 12px 32px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px; /* Bords légèrement arrondis */
+  cursor: pointer;
+  transition: all 0.3s ease; /* Animation fluide au survol */
+}
+
+/* Bouton principal (Register) - Noir massif */
+.btn-primary {
+  background-color: #111;
+  color: #fff;
+  border: 2px solid #111;
+}
+
+.btn-primary:hover {
+  background-color: #333;
+  transform: translateY(-2px); /* Effet de soulèvement */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Boutons secondaires (Login, Upload) - Transparents avec bordure */
+.btn-outline {
+  background-color: transparent;
+  color: #111;
+  border: 2px solid #111;
+}
+
+.btn-outline:hover {
+  background-color: rgba(17, 17, 17, 0.1); /* Léger fond gris au survol */
+  transform: translateY(-2px);
+}

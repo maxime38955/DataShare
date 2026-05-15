@@ -1,0 +1,126 @@
+/* Le fond reprend le même dégradé que l'accueil */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom, #ffcca9, #f07b71);
+  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  padding: 20px; /* Évite que la carte touche les bords sur mobile */
+}
+
+/* La carte blanche qui contient le formulaire */
+.auth-card {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px; /* Largeur max de la carte */
+  text-align: center;
+}
+
+.auth-title {
+  font-size: 2rem;
+  color: #111;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.auth-subtitle {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 30px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Pour que le padding ne casse pas la largeur */
+  transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #f07b71; /* Le bord devient corail au clic */
+  box-shadow: 0 0 0 3px rgba(240, 123, 113, 0.2);
+}
+
+.error-message {
+  color: #d93025;
+  font-size: 0.85rem;
+  background-color: #fce8e6;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Bouton principal */
+.btn-submit {
+  background-color: #111;
+  color: white;
+  border: none;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #333;
+  transform: translateY(-2px);
+}
+
+.btn-submit:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Pied de page de la carte (Liens) */
+.auth-footer {
+  margin-top: 25px;
+  font-size: 0.9rem;
+  color: #555;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-footer a {
+  color: #111;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.3s;
+}
+
+.auth-footer a:hover {
+  text-decoration-color: #111;
+}
+
+.back-link {
+  font-size: 0.85rem;
+  color: #888 !important;
+}

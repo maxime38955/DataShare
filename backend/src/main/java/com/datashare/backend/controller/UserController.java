@@ -1,9 +1,12 @@
 package com.datashare.backend.controller;
 
+import com.datashare.backend.dto.AuthResponse;
+import com.datashare.backend.dto.LoginRequest;
+import com.datashare.backend.dto.RegisterRequest;
 import com.datashare.backend.model.User;
 import com.datashare.backend.repository.UserRepository;
 import com.datashare.backend.service.JwtService;
-import com.datashare.backend.service.UserService; // <-- N'oublie pas l'import !
+import com.datashare.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,62 +22,46 @@ import java.util.*;
 @Slf4j
 public class UserController {
 
-    private final UserService userService; // <-- Injection de ton nouveau service
+    private final UserService userService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(
-            @RequestParam("email") String email,
-            @RequestParam("password") String password) {
-
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) { // Utilisation du DTO
         try {
-            // 1. Validation de base (le contrôleur garde ce rôle)
-            if (password.length() < 7) {
+            if (request.getPassword().length() < 7) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Mot de passe trop court. Il doit contenir au moins 7 caractères.");
+                        .body("Mot de passe trop court.");
             }
 
-            // 2. On délègue tout le travail complexe au Service !
-            User user = userService.registerUser(email, password);
+            User user = userService.registerUser(request.getEmail(), request.getPassword());
 
-            // 3. On prépare la réponse de succès
-            Map<String, Object> response = new HashMap<>();
-            response.put("email", user.getEmail());
-            response.put("message", "Compte créé avec succès.");
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            // On renvoie un AuthResponse avec un token tout de suite, c'est plus sympa pour l'UX
+            String token = jwtService.generateToken(user.getEmail());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new AuthResponse(token, user.getEmail(), "Compte créé avec succès."));
 
         } catch (IllegalArgumentException e) {
-            // On attrape spécifiquement l'erreur "Cet email est déjà utilisé" lancée par ton Service
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(e.getMessage());
-
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            log.error("Erreur critique lors de l'enregistrement de l'utilisateur {}", email, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Une erreur inattendue est survenue lors de l'enregistrement.");
+            log.error("Erreur register", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur inattendue.");
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            User user = userRepository.findByEmail(email)
+            User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-            if (passwordEncoder.matches(password, user.getPassword())) {
+            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 String token = jwtService.generateToken(user.getEmail());
-
-                Map<String, String> response = new HashMap<>();
-                response.put("token", token);
-                return ResponseEntity.ok(response);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects");
+                return ResponseEntity.ok(new AuthResponse(token, user.getEmail(), "Connexion réussie"));
             }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects");
         } catch (Exception e) {
-            // Sécurité : Ne jamais préciser si c'est l'email ou le mot de passe qui est faux
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects");
         }
     }

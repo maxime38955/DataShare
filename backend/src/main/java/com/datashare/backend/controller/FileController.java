@@ -1,5 +1,6 @@
 package com.datashare.backend.controller;
 
+import com.datashare.backend.dto.FileResponseDTO; // Import de ton nouveau DTO
 import com.datashare.backend.model.FileEntity;
 import com.datashare.backend.service.FileService;
 import com.datashare.backend.service.FileStorageService;
@@ -15,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/files")
@@ -36,20 +38,11 @@ public class FileController {
         try {
             String email = (principal != null) ? principal.getName() : null;
 
-            // On délègue tout au FileService !
+
             FileEntity savedFile = fileService.processUpload(file, password, expirationDays, tags, email);
 
-            // Préparation de la réponse propre
-            Map<String, Object> response = new HashMap<>();
-            response.put("fileId", savedFile.getFileId());
-            response.put("name", savedFile.getName());
-            response.put("size", savedFile.getSize());
-            response.put("mimeType", savedFile.getMimeType());
-            response.put("token", savedFile.getToken());
-            response.put("expirationDate", savedFile.getExpirationDate());
-            response.put("tags", savedFile.getTags());
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponseDTO(savedFile));
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -65,8 +58,15 @@ public class FileController {
             if (principal == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Accès refusé. Connectez-vous.");
             }
+
             List<FileEntity> history = fileService.getUserHistory(principal.getName());
-            return ResponseEntity.ok(history);
+
+
+            List<FileResponseDTO> responseList = history.stream()
+                    .map(this::mapToResponseDTO)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(responseList);
         } catch (Exception e) {
             log.error("Erreur lors de la récupération de l'historique", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Impossible de récupérer l'historique.");
@@ -78,19 +78,8 @@ public class FileController {
         try {
             FileEntity file = fileService.getFileByToken(token);
 
-            Map<String, Object> meta = new HashMap<>();
-            meta.put("name", file.getName());
-            meta.put("size", file.getSize());
-            meta.put("mimeType", file.getMimeType());
-            meta.put("expirationDate", file.getExpirationDate());
-            meta.put("path", file.getPath());
-            meta.put("token", file.getToken());
-            meta.put("isActive", file.getIsActive());
-            meta.put("uploadDate", file.getUploadDate());
-          
-
-
-            return ResponseEntity.ok(meta);
+            // On renvoie le DTO, ce qui masque automatiquement le "path" physique du fichier
+            return ResponseEntity.ok(mapToResponseDTO(file));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
@@ -129,5 +118,19 @@ public class FileController {
             log.error("Erreur lors de la suppression du fichier {}", fileId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur technique.");
         }
+    }
+
+
+    private FileResponseDTO mapToResponseDTO(FileEntity entity) {
+        return FileResponseDTO.builder()
+                .fileId(entity.getFileId())
+                .name(entity.getName())
+                .size(entity.getSize())
+                .mimeType(entity.getMimeType())
+                .token(entity.getToken())
+                .uploadDate(entity.getUploadDate())
+                .expirationDate(entity.getExpirationDate())
+                .tags(entity.getTags())
+                .build();
     }
 }

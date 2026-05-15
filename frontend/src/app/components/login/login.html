@@ -1,0 +1,46 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2 class="auth-title">Connexion</h2>
+    <p class="auth-subtitle">Content de vous revoir sur DataShare</p>
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="auth-form">
+      
+      <div class="input-group">
+        <label for="email">Adresse Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          [(ngModel)]="email" 
+          required 
+          placeholder="exemple@mail.com">
+      </div>
+
+      <div class="input-group">
+        <label for="password">Mot de passe</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          [(ngModel)]="password" 
+          required 
+          placeholder="••••••••">
+      </div>
+
+      
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="!loginForm.valid">
+        Se connecter
+      </button>
+
+    </form>
+
+    <div class="auth-footer">
+      <p>Pas encore de compte ? <a (click)="navigateTo('register')">S'inscrire</a></p>
+      <a class="back-link" (click)="navigateTo('')">← Retour à l'accueil</a>
+    </div>
+  </div>
+</div>
