@@ -1,1 +1,90 @@
-<p>profil works!</p>
+<div class="dashboard-container">
+  
+  <aside class="sidebar" [class.open]="isMenuOpen">
+    <div class="sidebar-mobile-header">
+      <button class="btn-close-menu" (click)="toggleMenu()">&times;</button>
+    </div>
+    <div class="logo">DataShare</div>
+    <nav class="menu">
+      <a class="menu-item active">Mes fichiers</a>
+    </nav>
+    <div class="sidebar-footer">
+      Copyright DataShare® 2025
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    
+    <header class="top-bar">
+      <button class="burger-menu" (click)="toggleMenu()">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <div class="header-right">
+        <div class="desktop-actions">
+          <button class="btn btn-dark" (click)="navigateTo('upload')">
+            Ajouter des fichiers
+          </button>
+          <button class="btn btn-logout-text" (click)="onLogout()">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </button>
+          <span class="profile-name ">{{ userEmail }}</span>
+        </div>
+
+        <div class="mobile-profile">
+        
+          <span class="profile-name">{{ userEmail }}</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <header class="content-header">
+        <h1 class="page-title">Mes fichiers</h1>
+      </header>
+
+      <div class="tabs-container">
+        <div class="tabs">
+          <button class="tab" [class.active]="filterStatus === 'ALL'" (click)="filterStatus = 'ALL'">Tous</button>
+          <button class="tab" [class.active]="filterStatus === 'ACTIVE'" (click)="filterStatus = 'ACTIVE'">Actifs</button>
+          <button class="tab" [class.active]="filterStatus === 'EXPIRED'" (click)="filterStatus = 'EXPIRED'">Expiré</button>
+        </div>
+      </div>
+
+      <div class="file-list">
+        @for (file of filteredFiles; track file.fileId) {
+          <div class="file-item">
+            <div class="file-info">
+              <div class="file-icon"><i class="far fa-file-image"></i></div>
+              <div class="file-details">
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-expiry" [class.expired]="isExpired(file.expirationDate)">
+                  {{ getExpiryText(file.expirationDate) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="file-actions">
+               @if (file.password) {
+              <i class="fas fa-lock lock-icon" title="Protégé par mot de passe">🔒</i>
+               }
+              @if (file.active) {
+                <button class="btn-action btn-delete" (click)="onDelete(file.fileId)">
+                  <i class="far fa-trash-alt"></i> Supprimer
+                </button>
+                <button class="btn-action btn-access" (click)="openFile(file.token)">
+                  Accéder &rarr;
+                </button>
+              } @else {
+                <span class="expired-text">Ce fichier a expiré, il n'est plus stocké chez nous</span>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">Vous n'avez pas encore de fichiers.</div>
+        }
+      </div>
+    </main>
+
+  </div>
+</div>

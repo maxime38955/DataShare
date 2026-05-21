@@ -34,7 +34,7 @@ export class LoginComponent {
         console.log('Connexion réussie ! Token reçu.');
         // Le token est déjà sauvegardé par le tap() dans ton service, 
         // on a juste à rediriger l'utilisateur !
-        this.router.navigate(['/upload']);
+        this.router.navigate(['/profil']);
       },
 
       // 'error' s'exécute si le serveur renvoie une erreur (ex: 401 Unauthorized)

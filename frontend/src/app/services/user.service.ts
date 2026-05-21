@@ -37,6 +37,7 @@ export class UserService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, loginRequest).pipe(
       tap(response => {
         if (response && response.token) {
+         
           this.saveToken(response.token);
           // Tu peux aussi stocker l'email si tu en as besoin pour l'affichage
           localStorage.setItem('user_email', response.email);

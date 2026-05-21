@@ -1,0 +1,221 @@
+:host {
+  display: block;
+  background-color: #fcfaf8;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Enveloppe qui contient la barre du haut + la liste */
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #fcfaf8;
+}
+
+/* --- SIDEBAR DESKTOP --- */
+.sidebar {
+  width: 260px;
+  background: linear-gradient(to bottom, #ffba93, #e56555);
+  color: white;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  z-index: 100;
+}
+
+.sidebar-mobile-header {
+  display: none;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 40px;
+}
+
+.menu-item {
+  display: block;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 20px;
+}
+
+.menu-item.active {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* --- 🌟 STYLE DE LA BARRE DU HAUT --- */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 50px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0dfd5;
+  min-height: 70px;
+}
+
+.burger-menu {
+  display: none; /* Masqué sur desktop */
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #333;
+}
+
+ 
+
+.desktop-actions {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.mobile-profile {
+  display: none; /* Masqué sur desktop */
+}
+
+.btn-dark {
+  background-color: #2c2c2c;
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-logout-text {
+  background: none;
+  border: none;
+  color: #e56555;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --- RESTE DU CONTENU --- */
+.main-content {
+  padding: 40px 50px;
+  flex: 1;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.tabs-container { margin-top: 20px; margin-bottom: 30px; }
+.tabs { display: inline-flex; background-color: #fae8df; border-radius: 30px; padding: 4px; }
+.tab { padding: 8px 24px; border: none; background: transparent; color: #555; font-weight: 600; border-radius: 20px; cursor: pointer; }
+.tab.active { background-color: #e56555; color: white; }
+
+.file-list { display: flex; flex-direction: column; gap: 12px; }
+.file-item { background-color: #fff; border: 1px solid #f0dfd5; border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.file-info { display: flex; align-items: center; gap: 15px; }
+.file-icon { background-color: #f7f7f7; padding: 12px; border-radius: 8px; font-size: 18px; }
+.file-details { display: flex; flex-direction: column; }
+.file-name { font-weight: 600; color: #111; }
+.file-expiry { font-size: 13px; color: #666; margin-top: 4px; }
+.file-expiry.expired { color: #e56555; }
+.file-actions { display: flex; align-items: center; gap: 15px; }
+.btn-action { padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-delete { background: transparent; border: none; color: #d98863; }
+.btn-access { background: transparent; border: 1px solid #d98863; color: #d98863; }
+.btn-access:hover { background-color: #d98863; color: white; }
+.expired-text { font-size: 13px; color: #999; }
+
+/* --- 📱 CSS MÉDIA QUERIES RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0dfd5;
+  }
+
+  .burger-menu {
+    display: block; /* On affiche le bouton menu à gauche */
+  }
+
+  .desktop-actions {
+    display: none; /* On cache les boutons d'upload et déconnexion */
+  }
+
+  /* On affiche le profil de Claire Marie à droite */
+  .mobile-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .profile-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2c2c2c;
+  }
+
+  /* La sidebar devient un tiroir coulissant hors-écran */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    transform: translateX(-100%); /* Masqué par défaut à gauche */
+    box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+  }
+
+  /* Classe ajoutée par Angular au clic sur le bouton burger */
+  .sidebar.open {
+    transform: translateX(0); /* Fait coulisser la barre vers la droite */
+  }
+
+  .sidebar-mobile-header {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-close-menu {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .file-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet, ɵEmptyOutletComponent } from '@angular/router';
+import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
@@ -9,4 +10,7 @@ import { RouterOutlet, ɵEmptyOutletComponent } from '@angular/router';
 })
 export class App {
   protected readonly title = signal('frontend');
+
+ 
+
 }

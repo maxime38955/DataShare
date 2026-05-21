@@ -15,5 +15,7 @@ public class FileResponseDTO {
     private String token;
     private LocalDateTime uploadDate;
     private LocalDateTime expirationDate;
+    private boolean isActive;
+    private String password;
     private Set<String> tags;
 }

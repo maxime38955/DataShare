@@ -1,0 +1,30 @@
+.hero-container {
+  /* Assure-toi d'avoir cette ligne pour que le bouton se positionne par rapport à ce conteneur */
+  position: relative; 
+  
+  /* ... le reste de ton CSS (display: flex, background, etc.) ... */
+}
+
+/* Positionnement en haut à droite */
+.top-nav {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+/* Style spécifique pour le bouton de déconnexion (tu peux l'ajuster selon tes goûts) */
+.btn-logout {
+  background-color: transparent;
+  color: #d93025; /* Un rouge discret pour l'action de déconnexion */
+  border: 1px solid #d93025;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  background-color: #fce8e6;
+  color: #b32a20;
+}

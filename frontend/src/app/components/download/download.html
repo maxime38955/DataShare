@@ -1,1 +1,73 @@
-<p>download works!</p>
+<div class="page-wrapper">
+  <header class="top-nav">
+    <div class="logo" (click)="navigateTo('')">DataShare</div>
+    
+    <div class="nav-actions">
+      @if (!isLoggedIn) {
+        <button class="btn-connect" (click)="navigateTo('login')">Se connecter</button>
+        <button class="btn-connect" (click)="navigateTo('register')">S'inscrire</button>
+        <button class="btn-connect" (click)="navigateTo('upload')">Upload</button>
+      } @else {
+        <button class="btn-connect" (click)="navigateTo('profil')">Mon profil</button>
+      }
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="download-card">
+      
+      @if (loading) {
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Récupération du fichier...</p>
+        </div>
+      } @else if (file) {
+        
+        <h2 class="title">Télécharger un fichier</h2>
+
+        <div class="file-box">
+          <div class="file-icon">
+            <i class="far fa-file-alt"></i>
+          </div>
+          <div class="file-info">
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-size">{{ formatSize(file.size) }}</span>
+          </div>
+        </div>
+
+        @if (!isExpired(file.expirationDate)) {
+  <div class="expiry-info">
+    <i class="far fa-clock"></i> Ce fichier expirera dans {{ getDaysRemaining(file.expirationDate) }} jours.
+  </div>
+
+  <div class="download-form">
+    @if (file.password) {
+      <label for="password">Fichier protégé par mot de passe</label>
+      <input 
+        type="password" 
+        id="password" 
+        [(ngModel)]="password" 
+        placeholder="Saisissez le mot de passe requis...">
+    }
+    
+    <button 
+      class="btn-download" 
+      (click)="onDownload()" 
+      [disabled]="file.password && !password">
+      <i class="fas fa-download"></i> Télécharger
+    </button>
+  </div>
+} @else {
+        <div class="error-state">
+          <i class="fas fa-search"></i>
+          <p>Fichier introuvable ou lien invalide.</p>
+        </div>
+      }
+  }
+    </div>
+  </main>
+
+  <footer class="footer">
+    Copyright DataShare® 2025
+  </footer>
+</div>

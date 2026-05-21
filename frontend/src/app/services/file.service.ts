@@ -1,21 +1,34 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs';
+ 
+export interface FileResponseDTO {
+  fileId: number;
+  name: string;
+  size: number;
+  mimeType: string;
+  token: string;
+  uploadDate: string;      
+  expirationDate: string;  
+  active: boolean;
+  password: string;
+  tags: string[];
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class FileService {
   
-  // L'URL de base pour ton contrôleur (ajuste si tu n'utilises pas /api/v1)
+  // URL alignée avec le context path du backend (/api/v1)
   private apiUrl = 'http://localhost:8080/api/v1/files';
 
   constructor(private http: HttpClient) {}
 
   // ==========================================
-  // 1. POST : UPLOAD UN FICHIER
+  // 1. POST : UPLOAD UN FICHIER (Reste en FormData car il y a un fichier binaire)
   // ==========================================
-  uploadFile(file: File, password?: string, expirationDays?: number, tags?: string[]): Observable<any> {
+  uploadFile(file: File, password?: string, expirationDays?: number, tags?: string[]): Observable<FileResponseDTO> {
     const formData = new FormData();
     formData.append('file', file);
     
@@ -31,41 +44,47 @@ export class FileService {
       tags.forEach(tag => formData.append('tags', tag));
     }
 
-    return this.http.post(`${this.apiUrl}/upload`, formData);
+    // Le retour est maintenant typé avec le DTO unique
+    return this.http.post<FileResponseDTO>(`${this.apiUrl}/upload`, formData);
   }
 
   // ==========================================
   // 2. GET : HISTORIQUE DE L'UTILISATEUR
   // ==========================================
-  getUserFiles(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/user/files`);
+  getUserFiles(): Observable<FileResponseDTO[]> {
+    // Le tableau renvoie une liste propre de DTOs nettoyés (sans le path serveur)
+    return this.http.get<FileResponseDTO[]>(`${this.apiUrl}/user/files`);
   }
 
   // ==========================================
   // 3. GET : MÉTADONNÉES D'UN FICHIER (Page publique)
   // ==========================================
-  getMetadata(token: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/metadata/${token}`);
+  getMetadata(token: string): Observable<FileResponseDTO> {
+    return this.http.get<FileResponseDTO>(`${this.apiUrl}/metadata/${token}`);
   }
+
+ 
 
   // ==========================================
   // 4. GET : TÉLÉCHARGEMENT BINAIRE
   // ==========================================
-  downloadFile(token: string): Observable<Blob> {
-    // ⚠️ IMPORTANT : 'responseType: blob' est indispensable pour dire à Angular
-    // qu'il ne va pas recevoir du JSON, mais un fichier binaire physique (PDF, JPG, etc.)
+  downloadFile(token: string, password?: string): Observable<Blob> {
+    let params = new HttpParams();
+    
+    // Si un mot de passe est fourni, on l'ajoute à l'URL (?password=xxx)
+    if (password) {
+      params = params.set('password', password);
+    }
+
     return this.http.get(`${this.apiUrl}/download/${token}`, {
+      params: params,
       responseType: 'blob'
     });
   }
-
   // ==========================================
   // 5. DELETE : SUPPRESSION D'UN FICHIER
   // ==========================================
-  deleteFile(fileId: number): Observable<any> {
-    // ⚠️ IMPORTANT : 'responseType: text' est nécessaire ici car ton backend Spring Boot 
-    // renvoie un simple String ("Fichier supprimé avec succès.") et non un objet JSON {}.
-    // Sans ça, Angular croira à une erreur de parsing.
+  deleteFile(fileId: number): Observable<string> {
     return this.http.delete(`${this.apiUrl}/user/${fileId}`, { 
       responseType: 'text' 
     });

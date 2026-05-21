@@ -11,8 +11,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.datashare.backend.config.ApplicationConfig;
 
 import java.security.Principal;
 import java.util.*;
@@ -26,6 +29,7 @@ public class FileController {
 
     private final FileService fileService;
     private final FileStorageService fileStorageService;
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(
@@ -36,6 +40,7 @@ public class FileController {
             Principal principal) {
 
         try {
+            password = passwordEncoder.encode(password);
             String email = (principal != null) ? principal.getName() : null;
 
 
@@ -85,18 +90,44 @@ public class FileController {
         }
     }
 
+
+
     @GetMapping("/download/{token}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String token) {
+    public ResponseEntity<Resource> downloadFile(
+            @PathVariable String token,
+            @RequestParam(required = false) String password // 1. On récupère le mot de passe s'il est envoyé
+    ) {
         try {
             FileEntity fileEntity = fileService.getFileByToken(token);
+
+            // 2. VÉRIFICATION DU MOT DE PASSE
+            // On vérifie si le fichier possède un mot de passe en base de données
+            if (fileEntity.getPassword() != null && !fileEntity.getPassword().isEmpty()) {
+
+                // Si le fichier est protégé mais que l'utilisateur n'a rien envoyé -> 401 Unauthorized
+                if (password == null || password.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                }
+
+
+                // Exemple basique (si le mot de passe n'est pas crypté en BDD) :
+                if (!passwordEncoder.matches(password, fileEntity.getPassword())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403 Forbidden
+                }
+            }
+
+            // 3. Si tout est OK, on charge le fichier
             Resource resource = fileStorageService.load(fileEntity.getPath());
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(fileEntity.getMimeType()))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileEntity.getName() + "\"")
                     .body(resource);
+
         } catch (NoSuchElementException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound().build(); // 404 Not Found
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build(); // 500 en cas d'erreur de lecture
         }
     }
 
@@ -130,6 +161,8 @@ public class FileController {
                 .token(entity.getToken())
                 .uploadDate(entity.getUploadDate())
                 .expirationDate(entity.getExpirationDate())
+                .isActive(entity.getIsActive())
+                .password(entity.getPassword())
                 .tags(entity.getTags())
                 .build();
     }

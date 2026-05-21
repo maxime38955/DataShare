@@ -79,8 +79,12 @@ public class FileService {
             throw new SecurityException("Vous n'avez pas l'autorisation de supprimer ce fichier.");
         }
 
-        // Suppression physique puis en base
+
+        file.setIsActive(false);
+        fileRepository.save(file);
+
+
         fileStorageService.delete(file.getPath());
-        fileRepository.delete(file);
+
     }
 }

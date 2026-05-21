@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Pour *ngIf, *ngFor
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms'; // Pour [formGroup]
+import { Router } from '@angular/router';
 
-// --- Imports Angular Material ---
+ 
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,6 +13,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 
 import { FileService } from '../../services/file.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-upload',
@@ -40,10 +42,12 @@ export class UploadComponent implements OnInit {
   
   // Limite fixée à 1 Go en octets (comme sur ton Spring Boot)
   readonly MAX_FILE_SIZE = 1024 * 1024 * 1024; 
-
+ 
   constructor(
     private fb: FormBuilder,
-    private fileService: FileService
+    private fileService: FileService,
+    private router: Router,
+    private userService: UserService 
   ) {}
 
   ngOnInit(): void {
@@ -103,13 +107,22 @@ export class UploadComponent implements OnInit {
       .subscribe({
         next: (response : any) => {
           console.log('Upload réussi ! Réponse du serveur :', response);
-          alert('Fichier généré avec succès ! Token : ' + response.token);
-          // Ici, tu pourras rediriger l'utilisateur vers une page de succès affichant le lien
+         
+          this.navigateTo([`download/${response.token}`]);
         },
         error: (error : any) => {
           console.error('Erreur lors de l\'upload :', error);
           this.errorMessage = 'Une erreur est survenue lors de la communication avec le serveur.';
         }
       });
+  }
+
+  navigateTo(path: any): void {
+    this.router.navigate([`/${path}`]);
+  }
+
+
+  get isLoggedIn(): boolean {
+    return this.userService.isLoggedIn();
   }
 }

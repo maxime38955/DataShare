@@ -1,1 +1,59 @@
-<p>register works!</p>
+<div class="auth-container">
+  <div class="auth-card">
+    <h2 class="auth-title">Inscription</h2>
+    <p class="auth-subtitle">Créez un compte pour partager vos fichiers en toute sécurité</p>
+
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="auth-form">
+      
+      <div class="input-group">
+        <label for="email">Adresse Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          [(ngModel)]="email" 
+          required 
+          email
+          #emailCtrl="ngModel"
+          placeholder="exemple@mail.com">
+        <span *ngIf="emailCtrl.touched && emailCtrl.invalid" class="field-error">
+          Veuillez entrer un email valide.
+        </span>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Mot de passe</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          [(ngModel)]="password" 
+          required 
+          minlength="7"
+          #pwdCtrl="ngModel"
+          placeholder="••••••••">
+        <span *ngIf="pwdCtrl.touched && pwdCtrl.invalid" class="field-error">
+          Le mot de passe doit contenir au moins 7 caractères.
+        </span>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="!registerForm.valid">
+        S'inscrire
+      </button>
+
+    </form>
+
+    <div class="auth-footer">
+      <p>Déjà un compte ? <a (click)="navigateTo('login')">Se connecter</a></p>
+      <a class="back-link" (click)="navigateTo('')">← Retour à l'accueil</a>
+    </div>
+  </div>
+</div>

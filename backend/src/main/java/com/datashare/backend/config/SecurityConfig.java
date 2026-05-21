@@ -34,19 +34,26 @@ public class SecurityConfig {
                 // 2. On désactive le CSRF (puisqu'on utilise des tokens JWT)
                 .csrf(csrf -> csrf.disable())
 
-                // 3. Gestion des autorisations
                 .authorizeHttpRequests(auth -> auth
                         // TRÈS IMPORTANT : On autorise TOUTES les requêtes OPTIONS (le preflight)
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // On autorise l'accès public au login et register
-                        .requestMatchers("/user/login", "/user/register").permitAll()
-                        .requestMatchers("/api/v1/user/login", "/api/v1/user/register").permitAll()
+                        // 1. On autorise l'accès public au login et register
+                        .requestMatchers(
+                                "/user/login", "/user/register",
+                                "/api/v1/user/login", "/api/v1/user/register"
+                        ).permitAll()
 
-                        // Le reste doit être authentifié
+                        // 2. NOUVEAU : On autorise l'accès public aux fichiers (Upload, Download, Metadata)
+                        .requestMatchers(
+                                "/files/upload", "/api/v1/files/upload",
+                                "/files/download/**", "/api/v1/files/download/**",
+                                "/files/metadata/**", "/api/v1/files/metadata/**"
+                        ).permitAll()
+
+                        // 3. Le reste doit être authentifié (ex: /files/user/files pour l'historique)
                         .anyRequest().authenticated()
                 )
-
                 // 4. On ajoute le filtre JWT
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

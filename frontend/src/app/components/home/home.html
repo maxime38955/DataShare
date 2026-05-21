@@ -1,12 +1,28 @@
 <div class="hero-container">
+  
+  <div class="top-nav" *ngIf="isLoggedIn">
+    <button class="btn btn-logout" (click)="logout()">Se déconnecter</button>
+  </div>
+
   <div class="content">
     <h1 class="title">DataShare</h1>
     <p class="subtitle">« Nous gardons vos fichiers en toute sécurité »</p>
 
     <div class="button-group">
-      <button class="btn btn-outline" (click)="navigateTo('login')">Login</button>
-      <button class="btn btn-primary" (click)="navigateTo('register')">Register</button>
+       @if (isLoggedIn) {
+      <button  class="btn btn-primary" (click)="navigateTo('profil')">
+        Mon Profil
+      </button>
+       } @else {
+        <ng-container>
+        <button class="btn btn-outline" (click)="navigateTo('login')">Login</button>
+        <button class="btn btn-primary" (click)="navigateTo('register')">Register</button>
+      </ng-container>
+      }
+      
+
       <button class="btn btn-outline" (click)="navigateTo('upload')">Upload</button>
+      
     </div>
   </div>
 </div>

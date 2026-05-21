@@ -14,6 +14,7 @@ export const routes: Routes = [
      {path: 'login', component: LoginComponent},
      {path: 'register', component: RegisterComponent},
      {path: 'download', component: DownloadComponent},
-     {path: 'profil', component: ProfilComponent}
+     {path: 'profil', component: ProfilComponent},
+     { path: 'download/:token', component: DownloadComponent }
 
 ];

@@ -1,25 +1,33 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common'; // Indispensable pour utiliser *ngIf
+import { UserService } from '../../services/user.service'; // Ajuste le chemin selon ton projet
 
 @Component({
-  selector: 'app-home',
-  imports: [],
+  selector: 'app-home', // ou 'app-hero' selon ton projet
+  standalone: true,
+  imports: [CommonModule], 
   templateUrl: './home.html',
-  styleUrl: './home.scss',
+  styleUrls: ['./home.scss']
 })
 export class HomeComponent {
 
-  // On injecte le routeur Angular pour gérer la navigation
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private userService: UserService // Injection du service
+  ) {}
 
-  /**
-   * Méthode déclenchée au clic sur les boutons
-   * @param path Le chemin de la route (ex: 'login', 'register')
-   */
+  // Ce "getter" interroge le service en temps réel
+  get isLoggedIn(): boolean {
+    return this.userService.isLoggedIn();
+  }
+
   navigateTo(path: string): void {
-    console.log(`Bouton cliqué ! Navigation vers : /${path}`);
-    
-    // Décommente la ligne ci-dessous quand tu auras configuré ton app-routing.module.ts
     this.router.navigate([`/${path}`]);
+  }
+
+  logout(): void {
+    this.userService.logout(); 
+ 
   }
 }
