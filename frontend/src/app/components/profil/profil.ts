@@ -91,7 +91,7 @@ get filteredFiles(): FileResponseDTO[] {
 
   onLogout(): void {
     this.userService.logout();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/home']);
   }
 
   openFile(token: string): void {
