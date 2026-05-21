@@ -81,6 +81,7 @@ public class FileService {
 
 
         file.setIsActive(false);
+        file.setExpirationDate(LocalDateTime.now());
         fileRepository.save(file);
 
 

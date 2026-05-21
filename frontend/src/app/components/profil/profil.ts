@@ -28,19 +28,18 @@ export class ProfilComponent implements OnInit {
   }
   
 extractEmailFromToken(): string {
-    // ⚠️ Remplace 'auth_token' par le nom exact de ta clé dans le localStorage
+    
     const token = localStorage.getItem('auth_token'); 
     
     if (token) {
       try {
-        // Un token JWT est composé de 3 parties séparées par des points.
-        // Le payload (les données) est la 2ème partie.
+         
         const payload = token.split('.')[1];
         
-        // On décode la base64 et on parse le JSON
+         
         const decodedPayload = JSON.parse(atob(payload));
         
-        // Spring Boot place généralement l'email/username dans "sub"
+         
         return decodedPayload.sub || 'Utilisateur'; 
       } catch (e) {
         console.error('Erreur lors du décodage du token', e);
@@ -61,13 +60,13 @@ loadFiles(): void {
     });
 }
 
-isMenuOpen = false; // Par défaut, le menu est fermé sur mobile
+isMenuOpen = false;  
 
 toggleMenu(): void {
-  this.isMenuOpen = !this.isMenuOpen; // Alterne l'état ouvert/fermé
+  this.isMenuOpen = !this.isMenuOpen;  
 }
 
-// Ajoute cette variable dans ta classe ProfilComponent
+ 
 filterStatus: 'ALL' | 'ACTIVE' | 'EXPIRED' = 'ALL';
 
 // Cette méthode retourne la liste filtrée
@@ -117,5 +116,76 @@ get filteredFiles(): FileResponseDTO[] {
     const diff = date.getTime() - new Date().getTime();
     const days = Math.ceil(diff / (1000 * 3600 * 24));
     return `Expire dans ${days} jour(s)`;
+  }
+
+  // --- Fonction pour déterminer l'émoji selon l'extension ---
+  getFileEmoji(fileName: string): string {
+    if (!fileName) return '📄'; // Fichier par défaut
+
+    // On récupère l'extension en minuscules
+    const parts = fileName.split('.');
+    if (parts.length === 1) return '📄'; // Pas d'extension trouvée
+    
+    const extension = parts.pop()?.toLowerCase();
+
+    switch (extension) {
+      // Images
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'svg':
+      case 'webp':
+        return '🖼️';
+      
+      // Vidéos
+      case 'mp4':
+      case 'avi':
+      case 'mov':
+      case 'mkv':
+        return '🎥';
+      
+      // Audios
+      case 'mp3':
+      case 'wav':
+      case 'ogg':
+        return '🎵';
+      
+      // Documents
+      case 'pdf':
+        return '📕';
+      case 'doc':
+      case 'docx':
+      case 'txt':
+        return '📝';
+      case 'xls':
+      case 'xlsx':
+      case 'csv':
+        return '📊';
+      case 'ppt':
+      case 'pptx':
+        return '📽️';
+      
+      // Archives
+      case 'zip':
+      case 'rar':
+      case '7z':
+      case 'tar':
+      case 'gz':
+        return '📦';
+      
+      // Code / Dev
+      case 'html':
+      case 'css':
+      case 'js':
+      case 'ts':
+      case 'json':
+      case 'java':
+        return '👨‍💻';
+
+      // Par défaut
+      default:
+        return '📄';
+    }
   }
 }

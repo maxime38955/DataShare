@@ -55,7 +55,9 @@
         @for (file of filteredFiles; track file.fileId) {
           <div class="file-item">
             <div class="file-info">
-              <div class="file-icon"><i class="far fa-file-image"></i></div>
+              
+              <div class="file-icon">{{ getFileEmoji(file.name) }}</div>
+              
               <div class="file-details">
                 <span class="file-name">{{ file.name }}</span>
                 <span class="file-expiry" [class.expired]="isExpired(file.expirationDate)">
