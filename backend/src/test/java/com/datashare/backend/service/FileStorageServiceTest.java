@@ -1,9 +1,11 @@
 package com.datashare.backend.service;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,24 +15,29 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FileStorageServiceTest {
 
-    // On instancie ton vrai service
-    private final FileStorageService storageService = new FileStorageService();
+    private FileStorageService storageService;
 
-    // Variable pour mémoriser le fichier créé et pouvoir le supprimer après
-    private String lastCreatedFilePath;
+    // 🌟 MAGIE JUNIT 5 : Crée un dossier temporaire et le détruit tout seul à la fin
+    @TempDir
+    Path tempDir;
 
-    @AfterEach
-    void tearDown() {
-        // NETTOYAGE : S'exécute automatiquement après chaque test
-        // Pour éviter de remplir ton disque dur avec des faux fichiers
-        if (lastCreatedFilePath != null) {
-            storageService.delete(lastCreatedFilePath);
-        }
+    @BeforeEach
+    void setUp() {
+        // On instancie le service avant chaque test
+        storageService = new FileStorageService();
+
+        // 🔧 On simule l'injection de Spring en forçant le chemin vers notre dossier temporaire.
+        // ATTENTION : Remplace "uploadDir" par le nom exact de la variable dans ton FileStorageService
+        // Exemple si ta vraie variable s'appelle "storageLocation" :
+        // Remplace la ligne dans setUp() par :
+        ReflectionTestUtils.setField(storageService, "rootLocation", Paths.get(tempDir.toString()));
     }
+
+    // PLUS BESOIN de @AfterEach ou de "lastCreatedFilePath", @TempDir s'occupe de tout nettoyer !
 
     @Test
     void shouldStoreAndLoadFileSuccessfully() throws Exception {
-        // 1. Arrange : Création d'un faux fichier
+        // 1. Arrange
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "document-test.pdf",
@@ -39,18 +46,18 @@ class FileStorageServiceTest {
         );
         String token = "uuid-test-123";
 
-        // 2. Act : On teste la sauvegarde (store)
-        lastCreatedFilePath = storageService.store(file, token);
+        // 2. Act (Store)
+        String savedPath = storageService.store(file, token);
 
-        // 3. Assert : Vérifications de la sauvegarde
-        assertNotNull(lastCreatedFilePath, "Le chemin ne doit pas être nul");
-        assertTrue(lastCreatedFilePath.endsWith("uuid-test-123.pdf"), "L'extension doit être conservée");
-        assertTrue(Files.exists(Paths.get(lastCreatedFilePath)), "Le fichier physique doit exister sur le disque");
+        // 3. Assert (Store)
+        assertNotNull(savedPath, "Le chemin ne doit pas être nul");
+        assertTrue(savedPath.endsWith("uuid-test-123.pdf"), "L'extension doit être conservée");
+        assertTrue(Files.exists(Path.of(savedPath)), "Le fichier physique doit exister sur le disque");
 
-        // 4. Act : On teste le chargement (load)
-        Resource resource = storageService.load(lastCreatedFilePath);
+        // 4. Act (Load)
+        Resource resource = storageService.load(savedPath);
 
-        // 5. Assert : Vérifications du chargement
+        // 5. Assert (Load)
         assertNotNull(resource);
         assertTrue(resource.exists(), "La ressource Spring doit exister");
         assertTrue(resource.isReadable(), "La ressource doit être lisible");
@@ -58,7 +65,7 @@ class FileStorageServiceTest {
 
     @Test
     void shouldThrowExceptionWhenFileIsEmpty() {
-        // 1. Arrange : Un fichier avec 0 octet
+        // 1. Arrange
         MockMultipartFile emptyFile = new MockMultipartFile(
                 "file",
                 "vide.txt",
@@ -66,7 +73,7 @@ class FileStorageServiceTest {
                 new byte[0]
         );
 
-        // 2 & 3. Act & Assert : On vérifie que ton code lève bien l'erreur prévue
+        // 2 & 3. Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             storageService.store(emptyFile, "token-vide");
         });
@@ -76,7 +83,7 @@ class FileStorageServiceTest {
 
     @Test
     void shouldDeleteFileSuccessfully() {
-        // 1. Arrange : Créer un fichier exprès pour le supprimer
+        // 1. Arrange
         MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "a-supprimer.txt",
@@ -84,14 +91,12 @@ class FileStorageServiceTest {
                 "A effacer".getBytes()
         );
         String pathToDelete = storageService.store(file, "token-delete");
+        assertTrue(Files.exists(Path.of(pathToDelete)));
 
-        // On s'assure qu'il est bien là
-        assertTrue(Files.exists(Paths.get(pathToDelete)));
-
-        // 2. Act : On teste ta méthode delete
+        // 2. Act
         storageService.delete(pathToDelete);
 
-        // 3. Assert : On vérifie qu'il a bien disparu du disque dur
-        assertFalse(Files.exists(Paths.get(pathToDelete)), "Le fichier physique aurait dû être supprimé");
+        // 3. Assert
+        assertFalse(Files.exists(Path.of(pathToDelete)), "Le fichier physique aurait dû être supprimé");
     }
 }

@@ -14,10 +14,18 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public User registerUser(String email, String password) {
-        // 1. On vérifie si l'email existe déjà
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Cet email est déjà utilisé");
+        // 1. D'ABORD on valide la taille du mot de passe
+        if (password == null || password.length() < 7) {
+            throw new IllegalArgumentException("Mot de passe trop court. Il doit contenir au moins 7 caractères.");
         }
+
+        // 2. ENSUITE on vérifie la base de données
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Cet email est déjà utilisé.");
+        }
+
+
+
 
         // 2. On crée l'utilisateur avec un mot de passe protégé (haché)
         User user = User.builder()

@@ -171,21 +171,7 @@ class FileServiceTest {
     // TESTS POUR deleteSecuredFile
     // ==========================================
 
-    @Test
-    void shouldDeleteFileWhenUserIsOwner() {
-        // Arrange
-        User owner = User.builder().email("proprio@mail.com").build();
-        FileEntity file = FileEntity.builder().fileId(1L).path("/tmp/test.txt").user(owner).build();
 
-        Mockito.when(fileRepository.findById(1L)).thenReturn(Optional.of(file));
-
-        // Act
-        fileService.deleteSecuredFile(1L, "proprio@mail.com");
-
-        // Assert
-        Mockito.verify(fileStorageService).delete("/tmp/test.txt");
-        Mockito.verify(fileRepository).delete(file);
-    }
 
     @Test
     void shouldThrowExceptionWhenDeletingNonExistentFile() {
@@ -227,4 +213,28 @@ class FileServiceTest {
         });
         assertEquals("Vous n'avez pas l'autorisation de supprimer ce fichier.", exception.getMessage());
     }
+
+    @Test
+    void shouldDeleteFileWhenUserIsOwner() {
+        // Arrange
+        User owner = User.builder().email("proprio@mail.com").build();
+        FileEntity file = FileEntity.builder().fileId(1L).path("/tmp/test.txt").user(owner).isActive(true).build();
+
+        Mockito.when(fileRepository.findById(1L)).thenReturn(Optional.of(file));
+
+        // Act
+        fileService.deleteSecuredFile(1L, "proprio@mail.com");
+
+        // Assert : On vérifie que la sauvegarde est appelée (Soft Delete)
+        ArgumentCaptor<FileEntity> fileCaptor = ArgumentCaptor.forClass(FileEntity.class);
+        Mockito.verify(fileRepository).save(fileCaptor.capture());
+
+        // On vérifie que le fichier est bien passé en inactif
+        assertFalse(fileCaptor.getValue().getIsActive());
+
+        // On s'assure que le "vrai" delete n'est jamais appelé
+        Mockito.verify(fileRepository, Mockito.never()).delete(Mockito.any());
+    }
+
+
 }

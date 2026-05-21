@@ -1,5 +1,6 @@
 package com.datashare.backend.controller;
 
+import com.datashare.backend.config.SecurityConfig;
 import com.datashare.backend.model.FileEntity;
 import com.datashare.backend.service.FileService;
 import com.datashare.backend.service.FileStorageService;
@@ -7,9 +8,12 @@ import com.datashare.backend.service.JwtService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -22,13 +26,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.mockito.ArgumentMatchers.*;
 
-@WebMvcTest(FileController.class)
-@AutoConfigureMockMvc(addFilters = false) // Désactive les filtres JWT pour le test unitaire
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+@SpringBootTest // Charge tout le contexte (fini les crashs de dépendances manquantes)
+@AutoConfigureMockMvc(addFilters = false) // Continue de désactiver la sécurité pour le test
+@ActiveProfiles("test") // Utilise la base de données mémoire H2
 class FileControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
+    @MockitoBean private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    @MockitoBean private org.springframework.security.web.SecurityFilterChain securityFilterChain;
     @MockitoBean private FileService fileService;
     @MockitoBean private FileStorageService fileStorageService;
     @MockitoBean private JwtService jwtService;
@@ -41,8 +50,9 @@ class FileControllerTest {
     void shouldUploadFileSuccessfully() throws Exception {
         MockMultipartFile mockFile = new MockMultipartFile("file", "test.pdf", "application/pdf", "contenu".getBytes());
         FileEntity mockSavedFile = FileEntity.builder()
-                .fileId(1L).name("test.pdf").token("uuid-123").build();
-
+                .fileId(1L).name("test.pdf").token("uuid-123")
+                .size(1024L).isActive(true)
+                .build();
         Mockito.when(fileService.processUpload(any(), any(), anyInt(), any(), anyString()))
                 .thenReturn(mockSavedFile);
 
@@ -88,8 +98,8 @@ class FileControllerTest {
 
     @Test
     void shouldReturnUserFilesHistory() throws Exception {
-        FileEntity file1 = FileEntity.builder().name("photo.jpg").build();
-        FileEntity file2 = FileEntity.builder().name("facture.pdf").build();
+        FileEntity file1 = FileEntity.builder().name("photo.jpg").size(2048L).isActive(true).build();
+        FileEntity file2 = FileEntity.builder().name("facture.pdf").size(1024L).isActive(true).build();
 
         Mockito.when(fileService.getUserHistory("test@mail.com")).thenReturn(List.of(file1, file2));
 
@@ -123,7 +133,14 @@ class FileControllerTest {
 
     @Test
     void shouldReturnMetadataWhenTokenIsValid() throws Exception {
-        FileEntity mockFile = FileEntity.builder().name("test.pdf").size(1024L).mimeType("application/pdf").build();
+        // Ajout du fileId et du mock manquant
+        FileEntity mockFile = FileEntity.builder()
+                .fileId(1L) // <- OBLIGATOIRE
+                .name("test.pdf").size(1024L).mimeType("application/pdf")
+                .isActive(true)
+                .build();
+
+        // AJOUT CRUCIAL DU MOCK
         Mockito.when(fileService.getFileByToken("abc-123")).thenReturn(mockFile);
 
         mockMvc.perform(get("/files/metadata/abc-123"))
@@ -131,7 +148,6 @@ class FileControllerTest {
                 .andExpect(jsonPath("$.name").value("test.pdf"))
                 .andExpect(jsonPath("$.size").value(1024));
     }
-
     @Test
     void shouldReturn404WhenTokenIsInvalidForMetadata() throws Exception {
         Mockito.when(fileService.getFileByToken("faux-token"))
@@ -222,5 +238,58 @@ class FileControllerTest {
                         .principal(() -> "test@mail.com"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("Erreur technique."));
+    }
+
+    @Test
+    void shouldReturnUnauthorizedWhenDownloadingProtectedFileWithoutPassword() throws Exception {
+        // Arrange : On simule un fichier protégé en base (il possède un mot de passe)
+        FileEntity mockProtectedFile = FileEntity.builder()
+                .name("secret.pdf")
+                .password("vraiMotDePasse")
+                .build();
+
+        Mockito.when(fileService.getFileByToken("token-secret")).thenReturn(mockProtectedFile);
+
+        // Act & Assert : On tente de télécharger SANS envoyer le paramètre ?password=
+        mockMvc.perform(get("/files/download/token-secret"))
+                .andExpect(status().isUnauthorized()); // Doit renvoyer 401
+    }
+
+    @Test
+    void shouldReturnForbiddenWhenDownloadingWithWrongPassword() throws Exception {
+        // Arrange : On simule un fichier protégé
+        FileEntity mockProtectedFile = FileEntity.builder()
+                .name("secret.pdf")
+                .password("vraiMotDePasse")
+                .build();
+
+        Mockito.when(fileService.getFileByToken("token-secret")).thenReturn(mockProtectedFile);
+
+        // Act & Assert : On tente de télécharger avec un MAUVAIS mot de passe
+        mockMvc.perform(get("/files/download/token-secret")
+                        .param("password", "mauvaisMotDePasse"))
+                .andExpect(status().isForbidden()); // Doit renvoyer 403
+    }
+
+    @Test
+    void shouldDownloadProtectedFileWithCorrectPassword() throws Exception {
+        // Arrange : Fichier protégé ET on a le bon mot de passe
+        FileEntity mockProtectedFile = FileEntity.builder()
+                .name("secret.pdf")
+                .mimeType("application/pdf")
+                .path("/tmp/secret.pdf")
+                .password("vraiMotDePasse")
+                .build();
+        ByteArrayResource mockResource = new ByteArrayResource("secret_data".getBytes());
+
+        Mockito.when(fileService.getFileByToken("token-secret")).thenReturn(mockProtectedFile);
+        Mockito.when(fileStorageService.load("/tmp/secret.pdf")).thenReturn(mockResource);
+        Mockito.when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        // Act & Assert : On envoie le BON mot de passe dans l'URL
+        mockMvc.perform(get("/files/download/token-secret")
+                        .param("password", "vraiMotDePasse"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"secret.pdf\""))
+                .andExpect(content().bytes("secret_data".getBytes()));
     }
 }

@@ -28,3 +28,94 @@
   background-color: #fce8e6;
   color: #b32a20;
 }
+
+
+/* --- 📱 CSS MÉDIA QUERIES RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+
+  .button-group{
+      display: flex;
+  flex-direction: column;
+  }
+
+  .top-bar {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0dfd5;
+  }
+
+  .burger-menu {
+    display: block; /* On affiche le bouton menu à gauche */
+  }
+
+  .desktop-actions {
+    display: none; /* On cache les boutons d'upload et déconnexion */
+  }
+
+  /* On affiche le profil de Claire Marie à droite */
+  .mobile-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .profile-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2c2c2c;
+  }
+
+  /* La sidebar devient un tiroir coulissant hors-écran */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    transform: translateX(-100%); /* Masqué par défaut à gauche */
+    box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+  }
+
+  /* Classe ajoutée par Angular au clic sur le bouton burger */
+  .sidebar.open {
+    transform: translateX(0); /* Fait coulisser la barre vers la droite */
+  }
+
+  .sidebar-mobile-header {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-close-menu {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .file-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .btn{
+    margin: auto;
+  }
+}
