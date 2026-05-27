@@ -26,12 +26,12 @@
           required 
           placeholder="••••••••">
       </div>
-
       
-      <div *ngIf="errorMessage" class="error-message">
+      @if (errorMessage) {
+      <div  class="error-message">
         {{ errorMessage }}
       </div>
-
+      }
       <button type="submit" class="btn-submit" [disabled]="!loginForm.valid">
         Se connecter
       </button>

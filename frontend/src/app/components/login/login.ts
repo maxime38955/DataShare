@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 // 1. On importe FormsModule (pour [(ngModel)]) et CommonModule (pour *ngIf)
 import { FormsModule } from '@angular/forms';
@@ -20,7 +20,10 @@ export class LoginComponent {
   passwordConf = '';
   errorMessage = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router,
+     private cdr: ChangeDetectorRef 
+  ) {}
+  
 
  onSubmit(): void {
     this.errorMessage = '';
@@ -41,6 +44,7 @@ export class LoginComponent {
       error: (err) => {
         console.error('Erreur lors de la connexion :', err);
         this.errorMessage = 'Identifiants incorrects. Veuillez réessayer.';
+         this.cdr.detectChanges(); 
       }
       
     });

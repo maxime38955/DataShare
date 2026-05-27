@@ -17,7 +17,7 @@ export class RegisterComponent {
   password = '';
   errorMessage = '';
   successMessage = '';
-
+  passwordConf = '';
   constructor(
     private userService: UserService,
     private router: Router

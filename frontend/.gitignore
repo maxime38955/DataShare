@@ -1,1 +1,20 @@
 .angular/cache
+# Dépendances Node (Très important !)
+node_modules/
+
+# Dossiers de build Angular
+dist/
+.angular/
+
+# Fichiers de cache et d'environnement locaux
+.cache/
+ 
+.env
+
+# Fichiers générés par Cypress (Vidéos, captures d'écran)
+cypress/videos/
+cypress/screenshots/
+
+# Fichiers système
+.DS_Store
+Thumbs.db

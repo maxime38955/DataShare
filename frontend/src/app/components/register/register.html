@@ -16,9 +16,12 @@
           email
           #emailCtrl="ngModel"
           placeholder="exemple@mail.com">
-        <span *ngIf="emailCtrl.touched && emailCtrl.invalid" class="field-error">
-          Veuillez entrer un email valide.
-        </span>
+          
+        @if (emailCtrl.touched && emailCtrl.invalid) {
+          <span class="field-error">
+            Veuillez entrer un email valide.
+          </span>
+        }
       </div>
 
       <div class="input-group">
@@ -32,20 +35,48 @@
           minlength="7"
           #pwdCtrl="ngModel"
           placeholder="••••••••">
-        <span *ngIf="pwdCtrl.touched && pwdCtrl.invalid" class="field-error">
-          Le mot de passe doit contenir au moins 7 caractères.
-        </span>
+          
+        @if (pwdCtrl.touched && pwdCtrl.invalid) {
+          <span class="field-error">
+            Le mot de passe doit contenir au moins 7 caractères.
+          </span>
+        }
       </div>
 
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
+      <div class="input-group">
+        <label for="passwordConf">Confirmer le mot de passe</label>
+        <input 
+          type="password" 
+          id="passwordConf" 
+          name="passwordConf" 
+          [(ngModel)]="passwordConf" 
+          required 
+          #pwdConfCtrl="ngModel"
+          placeholder="••••••••">
+          
+        @if (pwdConfCtrl.touched && password !== passwordConf) {
+          <span class="field-error">
+            Les mots de passe ne correspondent pas.
+          </span>
+        }
       </div>
 
-      <div *ngIf="successMessage" class="success-message">
-        {{ successMessage }}
-      </div>
+      @if (errorMessage) {
+        <div class="error-message">
+          {{ errorMessage }}
+        </div>
+      }
 
-      <button type="submit" class="btn-submit" [disabled]="!registerForm.valid">
+      @if (successMessage) {
+        <div class="success-message">
+          {{ successMessage }}
+        </div>
+      }
+
+      <button 
+        type="submit" 
+        class="btn-submit" 
+        [disabled]="!registerForm.valid || password !== passwordConf">
         S'inscrire
       </button>
 

@@ -70,6 +70,14 @@ export class UploadComponent implements OnInit {
         this.errorMessage = ''; // On réinitialise l'erreur
       }
     }
+   if (file) {
+  // On passe le nom en minuscules et on vérifie s'il se termine par ".exe"
+  if (file.name.toLowerCase().endsWith('.exe') || file.name.toLowerCase().endsWith('.bat')) {
+    this.errorMessage = 'Les fichiers exécutables (.exe) et (.bat) ne sont pas autorisés.';
+    this.selectedFile = null;
+  }
+}
+
   }
 
   // Ajoute un tag quand l'utilisateur appuie sur Entrée

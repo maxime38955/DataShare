@@ -17,6 +17,8 @@ export class DownloadComponent implements OnInit {
   file: FileResponseDTO | null = null;
   password: string = '';
   loading = true;
+  errorMessage = '';
+  downloadSuccess = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -42,19 +44,18 @@ export class DownloadComponent implements OnInit {
         error: (err) => {
           console.error("Erreur métadonnées", err);
           this.loading = false;
+           this.cdr.detectChanges(); 
         }
       });
     }
   }
 
   onDownload(): void {
-    // 1. Sécurité côté front : on bloque si le mot de passe manque
     if (this.file?.password  && !this.password) {
       alert("Veuillez saisir le mot de passe.");
       return;
     }
 
-    // 2. On envoie la requête avec le mot de passe (s'il y en a un)
     this.fileService.downloadFile(this.token, this.password).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -66,13 +67,16 @@ export class DownloadComponent implements OnInit {
         window.URL.revokeObjectURL(url);
         a.remove();
         
-        // Optionnel : vider le champ après succès
+        // 2. CHANGEMENT ICI : On met à jour nos variables après le succès
         this.password = ''; 
+        this.downloadSuccess = true; // Déclenche le message de réussite
+        this.errorMessage = ''; // On nettoie les éventuelles erreurs précédentes
+        this.cdr.detectChanges(); 
       },
       error: (err) => {
-        // Gérer spécifiquement l'erreur 403/401 (Mauvais mot de passe)
         if (err.status === 403 || err.status === 401) {
-          alert("Erreur : Le mot de passe est incorrect.");
+          this.errorMessage = 'Mauvais mot de passe.';
+          this.cdr.detectChanges(); 
         } else {
           alert("Erreur : Fichier introuvable ou expiré.");
         }

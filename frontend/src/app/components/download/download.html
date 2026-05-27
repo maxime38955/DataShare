@@ -35,35 +35,56 @@
           </div>
         </div>
 
-        @if (!isExpired(file.expirationDate)) {
-  <div class="expiry-info">
-    <i class="far fa-clock"></i> Ce fichier expirera dans {{ getDaysRemaining(file.expirationDate) }} jours.
-  </div>
+       @if (!isExpired(file.expirationDate)) {
+          <div class="expiry-info">
+            <i class="far fa-clock"></i> Ce fichier expirera dans {{ getDaysRemaining(file.expirationDate) }} jours.
+          </div>
 
-  <div class="download-form">
-    @if (file.password) {
-      <label for="password">Fichier protégé par mot de passe</label>
-      <input 
-        type="password" 
-        id="password" 
-        [(ngModel)]="password" 
-        placeholder="Saisissez le mot de passe requis...">
-    }
-    
-    <button 
-      class="btn-download" 
-      (click)="onDownload()" 
-      [disabled]="file.password && !password">
-      <i class="fas fa-download"></i> Télécharger
-    </button>
-  </div>
-} @else {
+          @if (!downloadSuccess) {
+            <div class="download-form">
+              @if (file.password) {
+                <label for="password">Fichier protégé par mot de passe</label>
+                <input 
+                  type="password" 
+                  id="password" 
+                  [(ngModel)]="password" 
+                  placeholder="Saisissez le mot de passe requis...">
+                
+                @if (errorMessage) {
+                  <div class="error-message">
+                    {{ errorMessage }}
+                  </div>
+                } 
+              }
+              
+              <button 
+                class="btn-download" 
+                (click)="onDownload()" 
+                [disabled]="file.password && !password">
+                <i class="fas fa-download"></i> Télécharger
+              </button>
+            </div>
+          } @else {
+            <div class="success-state" style="text-align: center; padding: 20px; background-color: #e8f5e9; border-radius: 8px; margin-top: 20px; color: #2e7d32;">
+              <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+              <p style="font-weight: bold; margin: 0;">Fichier téléchargé avec succès !</p>
+              <button class="back-link" style="margin-top: 15px; border: none; background: none; color: #1976d2; cursor: pointer; text-decoration: underline;" (click)="downloadSuccess = false">
+                Télécharger à nouveau
+              </button>
+            </div>
+          }
+          } @else {
         <div class="error-state">
           <i class="fas fa-search"></i>
           <p>Fichier introuvable ou lien invalide.</p>
         </div>
       }
-  }
+  }@else {
+        <div class="error-state">
+          <i class="fas fa-search"></i>
+          <p>Fichier introuvable ou lien invalide.</p>
+        </div>
+      }
     </div>
   </main>
 

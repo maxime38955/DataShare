@@ -1,12 +1,18 @@
-import 'zone.js';
-import 'zone.js/testing';
-import { getTestBed } from '@angular/core/testing';
-import {
-  BrowserDynamicTestingModule,
-  platformBrowserDynamicTesting,
-} from '@angular/platform-browser-dynamic/testing';
+import { defineConfig } from 'cypress';
 
-getTestBed().initTestEnvironment(
-  BrowserDynamicTestingModule,
-  platformBrowserDynamicTesting(),
-);
+export default defineConfig({
+  e2e: {
+    baseUrl: 'http://localhost:4200',
+    setupNodeEvents(on, config) {
+      // Tu pourras ajouter des plugins spécifiques à Node ici plus tard
+    },
+  },
+
+  component: {
+    devServer: {
+      framework: 'angular',
+      bundler: 'webpack',
+    },
+    specPattern: '**/*.cy.ts',
+  },
+});
