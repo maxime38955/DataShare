@@ -16,6 +16,7 @@
   display: flex;
   flex-direction: column;
   background-color: #fcfaf8;
+  min-width: 0; /* Empêche le wrapper de déborder de l'écran */
 }
 
 /* --- SIDEBAR DESKTOP --- */
@@ -28,6 +29,7 @@
   flex-direction: column;
   transition: transform 0.3s ease;
   z-index: 100;
+  flex-shrink: 0;
 }
 
 .sidebar-mobile-header {
@@ -78,8 +80,6 @@
   color: #333;
 }
 
- 
-
 .desktop-actions {
   display: flex;
   align-items: center;
@@ -126,14 +126,53 @@
 .tab.active { background-color: #e56555; color: white; }
 
 .file-list { display: flex; flex-direction: column; gap: 12px; }
-.file-item { background-color: #fff; border: 1px solid #f0dfd5; border-radius: 12px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
-.file-info { display: flex; align-items: center; gap: 15px; }
-.file-icon { background-color: #f7f7f7; padding: 12px; border-radius: 8px; font-size: 18px; }
-.file-details { display: flex; flex-direction: column; }
-.file-name { font-weight: 600; color: #111; }
+
+.file-item { 
+  background-color: #fff; 
+  border: 1px solid #f0dfd5; 
+  border-radius: 12px; 
+  padding: 16px 20px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  max-width: 100%; 
+  box-sizing: border-box;
+}
+
+.file-info { 
+  display: flex; 
+  align-items: center; 
+  gap: 15px; 
+  flex: 1;
+  min-width: 0; /* Autorise le conteneur à rétrécir */
+}
+
+.file-icon { 
+  background-color: #f7f7f7; 
+  padding: 12px; 
+  border-radius: 8px; 
+  font-size: 18px; 
+  flex-shrink: 0; /* Empêche l'icône de s'écraser */
+}
+
+.file-details { 
+  display: flex; 
+  flex-direction: column; 
+  flex: 1;
+  min-width: 0; /* Autorise le conteneur à rétrécir */
+}
+
+.file-name { 
+  font-weight: 600; 
+  color: #111; 
+  white-space: nowrap; /* Empêche le retour à la ligne */
+  overflow: hidden; /* Masque le texte qui déborde */
+  text-overflow: ellipsis; /* Ajoute les points de suspension */
+}
+
 .file-expiry { font-size: 13px; color: #666; margin-top: 4px; }
 .file-expiry.expired { color: #e56555; }
-.file-actions { display: flex; align-items: center; gap: 15px; }
+.file-actions { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
 .btn-action { padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .btn-delete { background: transparent; border: none; color: #d98863; }
 .btn-access { background: transparent; border: 1px solid #d98863; color: #d98863; }
@@ -148,14 +187,13 @@
   }
 
   .burger-menu {
-    display: block; /* On affiche le bouton menu à gauche */
+    display: block; 
   }
 
   .desktop-actions {
-    display: none; /* On cache les boutons d'upload et déconnexion */
+    display: none; 
   }
 
-  /* On affiche le profil de Claire Marie à droite */
   .mobile-profile {
     display: flex;
     align-items: center;
@@ -175,20 +213,18 @@
     color: #2c2c2c;
   }
 
-  /* La sidebar devient un tiroir coulissant hors-écran */
   .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
     width: 280px;
-    transform: translateX(-100%); /* Masqué par défaut à gauche */
+    transform: translateX(-100%); 
     box-shadow: 5px 0 15px rgba(0,0,0,0.1);
   }
 
-  /* Classe ajoutée par Angular au clic sur le bouton burger */
   .sidebar.open {
-    transform: translateX(0); /* Fait coulisser la barre vers la droite */
+    transform: translateX(0); 
   }
 
   .sidebar-mobile-header {
@@ -212,6 +248,11 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
+    width: 100%;
+  }
+
+  .file-info {
+    width: 100%; /* Prend toute la largeur disponible pour la coupure du texte */
   }
 
   .file-actions {

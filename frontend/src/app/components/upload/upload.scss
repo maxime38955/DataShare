@@ -14,10 +14,11 @@
   /* Ton dégradé de couleurs */
   background: linear-gradient(to bottom, #ffcca9, #f07b71);
   
-  /* LES 3 LIGNES MAGIQUES POUR RÉGLER LE PROBLÈME */
+ justify-content:flex-start;
   background-attachment: fixed; 
   background-size: cover;
   background-repeat: no-repeat;
+   padding: 0px 20px ;
 }
 
 /* Header global */
